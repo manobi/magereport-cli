@@ -1,0 +1,101 @@
+#!/usr/bin/env node
+const filename = process.argv[2];
+
+const puppeteer = require('puppeteer');
+const csv = require('csv');
+const fs = require('fs');
+const run = require('../lib/run');
+const report = require('../lib/report');
+const queue = require('queue')();
+const { PerformanceObserver, performance } = require('perf_hooks');
+
+function millisToMinutesAndSeconds(millis) {
+    var minutes = Math.floor(millis / 60000);
+    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+let results = 0;
+let timeouts = 0;
+let failures = [];
+
+queue.timeout = 100000;
+queue.concurrency = 10;
+queue.on('timeout', function (next, job) {
+    console.log('job timed out:', job.toString().replace(/\n/g, ''))
+    timeouts++;
+    next()
+});
+queue.on('success', function (result, job) {
+    const res = report(result);
+    if(res.failures){
+        failures.push(res.store);
+    }
+    results++;
+    //console.log('job finished processing:', job.toString().replace(/\n/g, ''))
+});
+
+function getStores(filename){
+    return new Promise((resolve, reject) => {
+        fs.readFile(`${process.cwd()}/${filename}`, (err, data) => {
+            if(err){
+                return reject('Erro ao abrir o arquivo csv');
+            }
+        
+            csv.parse(data.toString(), (err, data) => {
+                // Define strutucture
+                const header = data[0];
+                data.shift();
+                
+                // Transform to readable format
+                const stores = data.map((row) => {
+                    const response = {};
+                    header.forEach((key, index) => {
+                        response[key] = row[index]
+                    });
+                    return response;
+                });
+                return resolve(stores);
+            });
+        });
+    });
+}
+
+async function main(){
+    performance.mark('start');
+    // Open Chrome and read CSV simultaneously
+    Promise.all([
+        getStores(filename), 
+        puppeteer.launch()
+    ]).then((res) => {
+        const stores = res[0];
+        const browser = res[1];
+
+        //Runner
+        stores.forEach((store) => {
+            queue.push(() => {
+                return run(store.URL, browser)
+            }); 
+        });
+        
+        queue.start(function (err) {
+            if (err) throw err
+            performance.mark('finish');
+            performance.measure('timespent', 'start', 'finish');
+            const measurement = performance.getEntriesByName("timespent")[0];
+            
+            console.log('Lojas processadas:', results);
+            console.log('Tempo gasto:', millisToMinutesAndSeconds(measurement.duration));
+            console.log('Timeouts:', timeouts);
+            console.log('Lojas com falhas:');
+            failures.forEach((store) => {
+                console.log(store);
+            });
+            
+            browser.close();
+        });
+
+    });
+
+}
+main();
