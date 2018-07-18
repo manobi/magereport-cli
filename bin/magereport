@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+
+// Filename from command call
 const filename = process.argv[2];
+process.title = 'magereport';
 
 const puppeteer = require('puppeteer');
 const csv = require('csv');
@@ -15,23 +18,34 @@ function millisToMinutesAndSeconds(millis) {
     return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
 }
 
+let count = 1;
 let results = 0;
 let timeouts = 0;
 let failures = [];
 
+/*
+* TODO: Receive from command args
+*/
 queue.timeout = 100000;
 queue.concurrency = 10;
+
 queue.on('timeout', function (next, job) {
-    console.log('job timed out:', job.toString().replace(/\n/g, ''))
+    console.log('#', count);
+    console.log('Job timed out:', job.toString().replace(/\n/g, ''));
+    count++;
     timeouts++;
-    next()
+
+    next();
 });
+
 queue.on('success', function (result, job) {
+    console.log('#', count);
+    count++;
+    results++;
     const res = report(result);
     if(res.failures){
         failures.push(res.store);
     }
-    results++;
     //console.log('job finished processing:', job.toString().replace(/\n/g, ''))
 });
 
@@ -79,14 +93,21 @@ async function main(){
         });
         
         queue.start(function (err) {
-            if (err) throw err
+            if (err) {
+                console.log(err);
+                throw err
+            }
+            
             performance.mark('finish');
             performance.measure('timespent', 'start', 'finish');
-            const measurement = performance.getEntriesByName("timespent")[0];
             
+            //const duration = performance.getEntriesByName("timespent")[0]['duration'];
+            const duration = performance.nodeTiming.duration;
+
             console.log('Lojas processadas:', results);
-            console.log('Tempo gasto:', millisToMinutesAndSeconds(measurement.duration));
+            console.log('Tempo gasto:', millisToMinutesAndSeconds(duration));
             console.log('Timeouts:', timeouts);
+
             console.log('Lojas com falhas:');
             failures.forEach((store) => {
                 console.log(store);
