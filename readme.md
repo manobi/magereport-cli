@@ -87,7 +87,7 @@ Make your own tests and send improvements through pull requests.
 ## How it all works
 Since magereport.com does not provide any http API, the current solution is the automation of something you would do with a browser.
 
-Every single url read from the csv file is pushed to a in-process queue, then it's processed concurrently (max set to 10), opening each store as Chromium headless page (tab), using dev tools (Pupeteer).
+Every single url read from the csv file is pushed to a in-process queue, then it's processed concurrently (max set to 10), opening each store as Chromium headless page (tab), using dev tools (Puppeteer).
 
 It scans the page using basic DOM apis to extract the result of each test suite, and output it to the console using some fancy colours.
 
@@ -96,5 +96,6 @@ It scans the page using basic DOM apis to extract the result of each test suite,
 * It's half english half portuguese.
 * We must accept the concurrency as a command line argument.
 * This doc  sucks cuz I'm falling a sleep.
+* npm install with -g fail because of Google Puppeteer
 
 Any contribution would be welcome.
