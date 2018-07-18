@@ -2,8 +2,10 @@
 
 Automate your magereports api requests.
 * Colourfull reports
-* Prints the right signal to sterr and stdout to help with CI workflows
-========================================
+* Prints the right signal to stderr and stdout to help with CI workflows
+* Node.js solution handles very well a lot of async IO.
+
+-----------------------------------------
 
 ## Install
 If you already have the last version of node.js installed:
@@ -11,6 +13,7 @@ If you already have the last version of node.js installed:
 ```bash
 npm install magereport-cli
 ```
+-----------------------------------------
 
 ## Usage
 ```bash
@@ -72,9 +75,26 @@ Timeouts: 0
 Lojas com falhas:
 https://www.yourstore.com
 ```
+-----------------------------------------
 
 ## Performance
-I've run around 300 urls from a CSV file and it took only **16:50**. 
-The process never reached more than 6% of my CPU (MacBook Air (11-inch, Mid 2012)) and the average memory peak was 30mb.
+I've run around **300** urls from a CSV file and it took only **16:50min** to complete. 
+The process never reached more than **6%** of my **CPU** (MacBook Air (11-inch, Mid 2012).
+Average **memory** peak was like **30mb**.
 
-Make your tests and send improvements through pull requests.
+Make your own tests and send improvements through pull requests.
+
+## How it all works
+Since magereport.com does not provide any http API, the current solution is the automation of something you would do with a browser.
+
+Every single url read from the csv file is pushed to a in-process queue, then it's processed concurrently (max set to 10), opening each store as Chromium headless page (tab), using dev tools (Pupeteer).
+
+It scans the page using basic DOM apis to extract the result of each test suite, and output it to the console using some fancy colours.
+
+## Known issues
+* Sometimes you might see a unhendled promise reject error.
+* It's half english half portuguese.
+* We must accept the concurrency as a command line argument.
+* This doc  sucks cuz I'm falling a sleep.
+
+Any contribution would be welcome.
