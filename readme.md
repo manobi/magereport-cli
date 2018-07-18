@@ -8,10 +8,10 @@ Automate your magereports api requests.
 If you already have node.js installed:
 
 ```bash
-sudo npm install magereport-cli -g
+npm install magereport-cli
 ```
 
 ## Usage
 ```bash
-magereport stores.csv
+npx magereport stores.csv
 ```
