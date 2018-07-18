@@ -3,6 +3,7 @@
 Automate your magereports api requests.
 * Colourfull reports
 * Prints the right signal to sterr and stdout to help with CI workflows
+========================================
 
 ## Install
 If you already have the last version of node.js installed:
@@ -16,7 +17,8 @@ npm install magereport-cli
 npx magereport stores.csv
 ```
 
-## Response example
+**Response example**
+
 ```
 # 1
  ===== RELATÓRIO: https://www.yourstore.com ======
@@ -70,3 +72,9 @@ Timeouts: 0
 Lojas com falhas:
 https://www.yourstore.com
 ```
+
+## Performance
+I've run around 300 urls from a CSV file and it took only **16:50**. 
+The process never reached more than 6% of my CPU (MacBook Air (11-inch, Mid 2012)) and the average memory peak was 30mb.
+
+Make your tests and send improvements through pull requests.
