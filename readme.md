@@ -5,7 +5,7 @@ Automate your magereports api requests.
 * Prints the right signal to sterr and stdout to help with CI workflows
 
 ## Install
-If you already have node.js installed:
+If you already have the last version of node.js installed:
 
 ```bash
 npm install magereport-cli
